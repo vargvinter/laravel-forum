@@ -42,6 +42,8 @@ class Thread extends Model
             // OR
 
             // $thread->replies->each->delete();
+
+            Reputation::reduce($thread->creator, Reputation::THREAD_WAS_PUBLISHED);
         });
 
         // after creating the thread, update it to set slug.
