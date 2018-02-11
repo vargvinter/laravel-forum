@@ -24,12 +24,12 @@ Vue.use(InstantSearch);
 
 let authorizations = require('./authorizations');
 
-window.Vue.prototype.authorize = function(...params) {
+Vue.prototype.authorize = function(...params) {
 	if (! window.App.signedIn) return false;
 
 	// if the first parameter is string (function name from authorizaions.js file),
 	// trigger that function.
-	if (typeof(params[0] === 'string')) {
+	if (typeof params[0] === 'string') {
 		return authorizations[params[0]](params[1]);
 	}
 

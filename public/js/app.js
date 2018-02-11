@@ -36472,8 +36472,6 @@ var app = new Vue({
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_instantsearch__ = __webpack_require__(285);
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 window._ = __webpack_require__(284);
 
 
@@ -36500,7 +36498,7 @@ Vue.use(__WEBPACK_IMPORTED_MODULE_0_vue_instantsearch__["a" /* default */]);
 
 var authorizations = __webpack_require__(470);
 
-window.Vue.prototype.authorize = function () {
+Vue.prototype.authorize = function () {
   if (!window.App.signedIn) return false;
 
   // if the first parameter is string (function name from authorizaions.js file),
@@ -36510,7 +36508,7 @@ window.Vue.prototype.authorize = function () {
     params[_key] = arguments[_key];
   }
 
-  if (_typeof(params[0] === 'string')) {
+  if (typeof params[0] === 'string') {
     return authorizations[params[0]](params[1]);
   }
 
@@ -82030,6 +82028,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
 
 
 
@@ -82051,7 +82053,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             return this.authorize(function (user) {
                 return user.id === _this.user.id;
-            }); // authorize - funkcja z bootstrap.js
+            });
+        },
+        reputation: function reputation() {
+            return this.user.reputation + ' XP';
         }
     },
 
@@ -82061,12 +82066,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             this.persist(avatar.file);
         },
-        persist: function persist(file) {
+        persist: function persist(avatar) {
             var data = new FormData();
 
-            data.append('avatar', file);
+            data.append('avatar', avatar);
 
-            axios.post('/api/users/{$this.user.name}/avatar', data).then(function () {
+            axios.post('/api/users/' + this.user.name + '/avatar', data).then(function () {
                 return flash('Avatar uploaded!');
             });
         }
@@ -82187,13 +82192,13 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       "width": "50",
       "height": "50"
     }
-  }), _vm._v(" "), _c('h1', {
+  }), _vm._v(" "), _c('h1', [_vm._v("\n            " + _vm._s(_vm.user.name) + "\n            "), _c('small', {
     domProps: {
-      "textContent": _vm._s(_vm.user.name)
+      "textContent": _vm._s(_vm.reputation)
     }
-  })]), _vm._v(" "), (_vm.canUpdate) ? _c('form', {
+  })])]), _vm._v(" "), (_vm.canUpdate) ? _c('form', {
     attrs: {
-      "method": "post",
+      "method": "POST",
       "enctype": "multipart/form-data"
     }
   }, [_c('image-upload', {
