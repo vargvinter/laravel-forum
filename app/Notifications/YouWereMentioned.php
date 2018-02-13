@@ -44,8 +44,8 @@ class YouWereMentioned extends Notification
     public function toArray($notifiable)
     {
         return [
-            'message' => $this->reply->owner->name . ' mentioned you in ' . $this->reply->thread->title,
-            'link' => $this->reply->path()
+            'message' => $this->reply->owner->name.' mentioned you in '.$this->reply->thread->title,
+            'link' => $this->reply->path(),
         ];
     }
 }

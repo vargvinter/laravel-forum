@@ -20,14 +20,13 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'email' => $faker->unique()->safeEmail,
         'password' => $password ?: $password = bcrypt('secret'),
         'remember_token' => str_random(10),
-        'confirmed' => true
+        'confirmed' => true,
     ];
 });
 
-
 $factory->state(App\User::class, 'unconfirmed', function () {
     return [
-        'confirmed' => false
+        'confirmed' => false,
     ];
 });
 
@@ -45,7 +44,7 @@ $factory->define(App\Thread::class, function ($faker) {
         'body'  => $faker->paragraph,
         'visits' => 0,
         'slug' => str_slug($title),
-        'locked' => false
+        'locked' => false,
     ];
 });
 
@@ -55,10 +54,9 @@ $factory->define(App\Channel::class, function ($faker) {
     return [
         'name' => $name,
         'slug' => $name,
-        'description' => $faker->sentence
+        'description' => $faker->sentence,
     ];
 });
-
 
 $factory->define(App\Reply::class, function ($faker) {
     return [
@@ -68,7 +66,7 @@ $factory->define(App\Reply::class, function ($faker) {
         'user_id' => function () {
             return factory('App\User')->create()->id;
         },
-        'body'  => $faker->paragraph
+        'body'  => $faker->paragraph,
     ];
 });
 
@@ -80,6 +78,6 @@ $factory->define(\Illuminate\Notifications\DatabaseNotification::class, function
             return auth()->id() ?: factory('App\User')->create()->id;
         },
         'notifiable_type' => 'App\User',
-        'data' => ['foo' => 'bar']
+        'data' => ['foo' => 'bar'],
     ];
 });

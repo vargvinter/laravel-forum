@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\{Thread, Trending};
+use App\Thread;
+use App\Trending;
 
 class SearchController extends Controller
 {
@@ -19,7 +20,7 @@ class SearchController extends Controller
         }
 
         return view('threads.search', [
-            'trending' => $trending->get()
+            'trending' => $trending->get(),
         ]);
     }
 }
