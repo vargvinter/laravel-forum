@@ -9,12 +9,24 @@ class Reputation
     const BEST_REPLY_AWARDED = 50;
     const REPLY_FAVORITED = 5;
 
-    public static function award($user, $points)
+    /**
+     * Award reputation points to the given user.
+     *
+     * @param User $user
+     * $param integer $points
+     */
+    public static function gain($user, $points)
     {
         $user->increment('reputation', $points);
     }
 
-    public static function reduce($user, $points)
+    /**
+     * Reduce reputation points for the given user.
+     *
+     * @param User $user
+     * $param integer $points
+     */
+    public static function lose($user, $points)
     {
         $user->decrement('reputation', $points);
     }

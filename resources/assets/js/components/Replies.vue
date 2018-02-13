@@ -1,62 +1,58 @@
 <template>
-	<div>
-		<div v-for="(reply, index) in items" :key="reply.id">
-			<reply :reply="reply" @deleted="remove(index)"></reply>
-		</div>
+    <div>
+        <div v-for="(reply, index) in items" :key="reply.id">
+            <reply :reply="reply" @deleted="remove(index)"></reply>
+        </div>
 
-		<paginator :dataSet="dataSet" @changed="fetch"></paginator>
+        <paginator :dataSet="dataSet" @changed="fetch"></paginator>
 
-		<p v-if="$parent.locked">
-			This thread has been locked. No more replies are allowed.
-		</p>
+        <p v-if="$parent.locked">
+            This thread has been locked. No more replies are allowed.
+        </p>
 
-		<new-reply @created="add" v-else></new-reply>
-	</div>
+        <new-reply @created="add" v-else></new-reply>
+    </div>
 </template>
 
 <script>
-	import Reply from './Reply.vue';
-	import NewReply from './NewReply.vue';
-	import collection from '../mixins/collection';
+    import Reply from './Reply.vue';
+    import NewReply from './NewReply.vue';
+    import collection from '../mixins/collection';
 
-	export default {
-		components: { Reply, NewReply },
+    export default {
+        components: { Reply, NewReply },
 
-		mixins: [collection],
+        mixins: [collection],
 
-		data() {
-			return {
-				dataSet: false
-			}
-		},
+        data() {
+            return { dataSet: false };
+        },
 
-		created() {
-			this.fetch();
-		},
+        created() {
+            this.fetch();
+        },
 
-		methods: {
-			fetch(page) {
-				axios.get(this.url(page))
-					.then(this.refresh);
-			},
+        methods: {
+            fetch(page) {
+                axios.get(this.url(page)).then(this.refresh);
+            },
 
-			refresh({data}) {
-				this.dataSet = data;
-				this.items = data.data;
+            url(page) {
+                if (! page) {
+                    let query = location.search.match(/page=(\d+)/);
 
-				window.scrollTo(0, 0);
-			},
+                    page = query ? query[1] : 1;
+                }
 
-			url(page) {
-				if ( ! page) {
-					let query = location.search.match(/page=(\d+)/);
+                return `${location.pathname}/replies?page=${page}`;
+            },
 
-					page = query ? query[1] : 1;
-				}
+            refresh({data}) {
+                this.dataSet = data;
+                this.items = data.data;
 
-				return `${location.pathname}/replies?page=${page}`;
-			}
-		}
-	}
-
+                window.scrollTo(0, 0);
+            }
+        }
+    }
 </script>

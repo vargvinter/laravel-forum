@@ -2,43 +2,46 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class MentionUsersTest extends TestCase
 {
-    use DatabaseMigrations;
+    use RefreshDatabase;
 
     /** @test */
-    public function mentioned_users_in_a_reply_are_notified()
+    function mentioned_users_in_a_reply_are_notified()
     {
-        $john = create(\App\User::class, ['name' => 'JohnDoe']);
+        // Given we have a user, JohnDoe, who is signed in.
+        $john = create('App\User', ['name' => 'JohnDoe']);
 
         $this->signIn($john);
 
-        $jane = create(\App\User::class, ['name' => 'JaneDoe']);
+        // And we also have a user, JaneDoe.
+        $jane = create('App\User', ['name' => 'JaneDoe']);
 
-        $thread = create(\App\Thread::class);
+        // If we have a thread
+        $thread = create('App\Thread');
 
-        $reply = make(\App\Reply::class, [
-            'body' => '@JaneDoe look at this!'
+        // And JohnDoe replies to that thread and mentions @JaneDoe.
+        $reply = make('App\Reply', [
+            'body' => 'Hey @JaneDoe check this out.'
         ]);
 
         $this->json('post', $thread->path() . '/replies', $reply->toArray());
 
+        // Then @JaneDoe should receive a notification.
         $this->assertCount(1, $jane->notifications);
     }
 
     /** @test */
-    public function it_can_fetch_all_mentioned_users_starting_with_the_given_characters()
+    function it_can_fetch_all_mentioned_users_starting_with_the_given_characters()
     {
-        create(\App\User::class, ['name' => 'johndoe']);
-        create(\App\User::class, ['name' => 'johndoe2']);
-        create(\App\User::class, ['name' => 'janedoe']);
+        create('App\User', ['name' => 'johndoe']);
+        create('App\User', ['name' => 'johndoe2']);
+        create('App\User', ['name' => 'janedoe']);
 
-        $results = $this->json('GET', 'api/users', ['name' => 'john']);
+        $results = $this->json('GET', '/api/users', ['name' => 'john']);
 
         $this->assertCount(2, $results->json());
     }

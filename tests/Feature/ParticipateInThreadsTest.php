@@ -2,30 +2,28 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class ParticipateInThreadsTest extends TestCase
 {
-	use DatabaseMigrations;
+    use RefreshDatabase;
 
     /** @test */
-    public function unauthenticated_user_may_not_add_replies()
+    function unauthenticated_users_may_not_add_replies()
     {
-        $thread = create(\App\Thread::class);
-
         $this->withExceptionHandling()
-            ->post($thread->path() . '/replies', [])
+            ->post('/threads/some-channel/1/replies', [])
             ->assertRedirect('/login');
     }
 
     /** @test */
-    public function an_authenticated_user_may_participate_in_forum_threads()
+    function an_authenticated_user_may_participate_in_forum_threads()
     {
         $this->signIn();
 
-        $thread = create(\App\Thread::class);
-        $reply = make(\App\Reply::class);
+        $thread = create('App\Thread');
+        $reply = make('App\Reply');
 
         $this->post($thread->path() . '/replies', $reply->toArray());
 
@@ -34,115 +32,103 @@ class ParticipateInThreadsTest extends TestCase
     }
 
     /** @test */
-    public function a_reply_requires_a_body()
+    function a_reply_requires_a_body()
     {
         $this->withExceptionHandling()->signIn();
 
-        $thread = create(\App\Thread::class);
-        $reply = make(\App\Reply::class, ['body' => null]);
+        $thread = create('App\Thread');
+        $reply = make('App\Reply', ['body' => null]);
 
         $this->post($thread->path() . '/replies', $reply->toArray())
-            ->assertSessionHasErrors('body');
+             ->assertSessionHasErrors('body');
     }
 
     /** @test */
-    public function unauthorized_users_cannot_delete_replies()
+    function unauthorized_users_cannot_delete_replies()
     {
         $this->withExceptionHandling();
 
-        $reply = create(\App\Reply::class);
+        $reply = create('App\Reply');
 
-        $this->delete('/replies/' . $reply->id)
-            ->assertRedirect('/login');
+        $this->delete("/replies/{$reply->id}")
+            ->assertRedirect('login');
 
         $this->signIn()
-            ->delete('/replies/' . $reply->id)
+            ->delete("/replies/{$reply->id}")
             ->assertStatus(403);
     }
 
     /** @test */
-    public function authorized_users_can_delete_replies()
+    function authorized_users_can_delete_replies()
     {
         $this->signIn();
+        $reply = create('App\Reply', ['user_id' => auth()->id()]);
 
-        $reply = create(\App\Reply::class, ['user_id' => auth()->id()]);
+        $this->delete("/replies/{$reply->id}")->assertStatus(302);
 
-        $this->delete('/replies/' . $reply->id)->assertStatus(302);
-
-        $this->assertDatabaseMissing('replies', [
-            'id' => $reply->id
-        ]);
+        $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
 
         $this->assertEquals(0, $reply->thread->fresh()->replies_count);
     }
 
     /** @test */
-    public function unauthorized_users_cannot_update_replies()
+    function unauthorized_users_cannot_update_replies()
     {
         $this->withExceptionHandling();
 
-        $reply = create(\App\Reply::class);
+        $reply = create('App\Reply');
 
-        $this->patch('/replies/' . $reply->id)
-            ->assertRedirect('/login');
+        $this->patch(route('replies.update', $reply->id))
+            ->assertRedirect('login');
 
         $this->signIn()
-            ->patch('/replies/' . $reply->id)
+            ->patch(route('replies.update', $reply->id))
             ->assertStatus(403);
     }
 
     /** @test */
-    public function authorized_users_can_update_replies()
+    function authorized_users_can_update_replies()
     {
         $this->signIn();
 
-        $reply = create(\App\Reply::class, ['user_id' => auth()->id()]);
+        $reply = create('App\Reply', ['user_id' => auth()->id()]);
 
         $updatedReply = 'You been changed, fool.';
+        $this->patch(route('replies.update', $reply->id), ['body' => $updatedReply]);
 
-        $this->patch('/replies/' . $reply->id, [
-            'body' => $updatedReply
-        ]);
-
-        $this->assertDatabaseHas('replies', [
-            'id' => $reply->id,
-            'body' => $updatedReply
-        ]);
+        $this->assertDatabaseHas('replies', ['id' => $reply->id, 'body' => $updatedReply]);
     }
 
-	/** @test */
-	public function replies_that_contain_spam_may_not_be_created()
-	{
-		$this->withExceptionHandling();
-		$this->signIn();
+    /** @test */
+    function replies_that_contain_spam_may_not_be_created()
+    {
+        $this->withExceptionHandling();
 
-		$thread = create(\App\Thread::class);
-		$reply = make(\App\Reply::class, [
-			'body' => 'Yahoo Customer Support'
-		]);
+        $this->signIn();
 
-		$this
-			->json('post', $thread->path() . '/replies', $reply->toArray())
-			->assertStatus(422);
-	}
+        $thread = create('App\Thread');
+        $reply = make('App\Reply', [
+            'body' => 'Yahoo Customer Support'
+        ]);
 
-	/** @test */
-	public function users_may_only_reply_maximum_once_per_minute()
-	{
-		$this->withExceptionHandling();
-		$this->signIn();
+        $this->json('post', $thread->path() . '/replies', $reply->toArray())
+            ->assertStatus(422);
+    }
 
-		$thread = create(\App\Thread::class);
-		$reply = make(\App\Reply::class, [
-			'body' => 'My simple reply.'
-		]);
+    /** @test */
+    function users_may_only_reply_a_maximum_of_once_per_minute()
+    {
+        $this->withExceptionHandling();
 
-		$this
-			->post($thread->path() . '/replies', $reply->toArray())
-			->assertStatus(200);
+        $this->signIn();
 
-		$this
-			->post($thread->path() . '/replies', $reply->toArray())
-			->assertStatus(429);
-	}
+        $thread = create('App\Thread');
+        $reply = make('App\Reply');
+
+        $this->post($thread->path() . '/replies', $reply->toArray())
+            ->assertStatus(200);
+
+        $this->post($thread->path() . '/replies', $reply->toArray())
+            ->assertStatus(429);
+    }
 }

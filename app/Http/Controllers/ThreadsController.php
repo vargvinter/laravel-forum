@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use App\Channel;
-use App\Thread;
-use App\Trending;
 use App\Filters\ThreadFilters;
 use App\Rules\Recaptcha;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Thread;
+use App\Trending;
 
 class ThreadsController extends Controller
 {
+    /**
+     * Create a new ThreadsController instance.
+     */
     public function __construct()
     {
         $this->middleware('auth')->except(['index', 'show']);
@@ -21,6 +21,9 @@ class ThreadsController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param  Channel      $channel
+     * @param ThreadFilters $filters
+     * @param \App\Trending $trending
      * @return \Illuminate\Http\Response
      */
     public function index(Channel $channel, ThreadFilters $filters, Trending $trending)
@@ -50,7 +53,7 @@ class ThreadsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Rules\Recaptcha $recaptcha
      * @return \Illuminate\Http\Response
      */
     public function store(Recaptcha $recaptcha)
@@ -80,10 +83,12 @@ class ThreadsController extends Controller
     /**
      * Display the specified resource.
      *
+     * @param  integer      $channel
      * @param  \App\Thread  $thread
+     * @param \App\Trending $trending
      * @return \Illuminate\Http\Response
      */
-    public function show(Channel $channel, Thread $thread, Trending $trending)
+    public function show($channel, Thread $thread, Trending $trending)
     {
         if (auth()->check()) {
             auth()->user()->read($thread);
@@ -97,44 +102,31 @@ class ThreadsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update the given thread.
      *
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
+     * @param string $channel
+     * @param Thread $thread
      */
-    public function edit(Thread $thread)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Channel $channel, Thread $thread)
+    public function update($channel, Thread $thread)
     {
         $this->authorize('update', $thread);
 
-        $data = request()->validate([
-            'title' => 'required|spamfree',
-            'body' => 'required|spamfree'
-        ]);
-
-        $thread->update($data);
+        $thread->update(request()->validate([
+            'title' => 'required',
+            'body' => 'required'
+        ]));
 
         return $thread;
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete the given thread.
      *
-     * @param  \App\Thread  $thread
-     * @return \Illuminate\Http\Response
+     * @param        $channel
+     * @param Thread $thread
+     * @return mixed
      */
-    public function destroy(Channel $channel, Thread $thread)
+    public function destroy($channel, Thread $thread)
     {
         $this->authorize('update', $thread);
 
@@ -147,9 +139,16 @@ class ThreadsController extends Controller
         return redirect('/threads');
     }
 
+    /**
+     * Fetch all relevant threads.
+     *
+     * @param Channel       $channel
+     * @param ThreadFilters $filters
+     * @return mixed
+     */
     protected function getThreads(Channel $channel, ThreadFilters $filters)
     {
-        $threads = Thread::latest()->filters($filters);
+        $threads = Thread::latest()->filter($filters);
 
         if ($channel->exists) {
             $threads->where('channel_id', $channel->id);

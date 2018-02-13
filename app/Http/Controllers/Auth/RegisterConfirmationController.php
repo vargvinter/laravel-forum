@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\User;
 
 class RegisterConfirmationController extends Controller
 {
+    /**
+     * Confirm a user's email address.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function index()
     {
         $user = User::where('confirmation_token', request('token'))->first();

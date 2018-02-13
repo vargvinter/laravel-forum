@@ -2,45 +2,44 @@
 
 namespace Tests\Feature;
 
-use App\User;
 use App\Mail\PleaseConfirmYourEmail;
-use Mail;
+use App\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Auth\Events\Registered;
 
 class RegistrationTest extends TestCase
 {
-    use DatabaseMigrations;
+    use RefreshDatabase;
 
     /** @test */
-    public function a_confirmation_email_is_sent_upon_registration()
+    function a_confirmation_email_is_sent_upon_registration()
     {
         Mail::fake();
 
         $this->post(route('register'), [
             'name' => 'John',
             'email' => 'john@example.com',
-            'password' => 'secret',
-            'password_confirmation' => 'secret'
+            'password' => 'foobar',
+            'password_confirmation' => 'foobar'
         ]);
 
         Mail::assertQueued(PleaseConfirmYourEmail::class);
     }
 
     /** @test */
-    public function user_can_fully_confirm_their_email_address()
+    function user_can_fully_confirm_their_email_addresses()
     {
         Mail::fake();
 
         $this->post(route('register'), [
             'name' => 'John',
             'email' => 'john@example.com',
-            'password' => 'secret',
-            'password_confirmation' => 'secret'
+            'password' => 'foobar',
+            'password_confirmation' => 'foobar'
         ]);
 
-        $user = User::first();
+        $user = User::whereName('John')->first();
 
         $this->assertFalse($user->confirmed);
         $this->assertNotNull($user->confirmation_token);
@@ -48,15 +47,14 @@ class RegistrationTest extends TestCase
         $this->get(route('register.confirm', ['token' => $user->confirmation_token]))
             ->assertRedirect(route('threads'));
 
-        // $user->fresh()... because $user will be cached and we want updated $user instance.
-        tap($user->fresh(), function($user) {
+        tap($user->fresh(), function ($user) {
             $this->assertTrue($user->confirmed);
             $this->assertNull($user->confirmation_token);
         });
     }
 
     /** @test */
-    public function confirming_an_invalid_token()
+    function confirming_an_invalid_token()
     {
         $this->get(route('register.confirm', ['token' => 'invalid']))
             ->assertRedirect(route('threads'))

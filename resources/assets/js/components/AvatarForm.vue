@@ -36,7 +36,7 @@
             },
 
             reputation() {
-                return this.user.reputation + ' XP';
+                return this.user.reputation + 'XP';
             }
         },
 

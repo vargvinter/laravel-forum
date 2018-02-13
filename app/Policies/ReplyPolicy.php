@@ -2,25 +2,37 @@
 
 namespace App\Policies;
 
-use App\User;
 use App\Reply;
+use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ReplyPolicy
 {
     use HandlesAuthorization;
 
+    /**
+     * Determine if the authenticated user has permission to update a reply.
+     *
+     * @param  User  $user
+     * @param  Reply $reply
+     * @return bool
+     */
     public function update(User $user, Reply $reply)
     {
         return $reply->user_id == $user->id;
     }
 
+    /**
+     * Determine if the authenticated user has permission to create a new reply.
+     *
+     * @param  User $user
+     * @return bool
+     */
     public function create(User $user)
     {
-        // It's a test specific problem. Use fresh() to re-fetch the data.
-        // For ParticipateInThreadsTest::users_may_only_reply_maximum_once_per_minute()
-        if ( ! $lastReply = $user->fresh()->lastReply)
+        if (! $lastReply = $user->fresh()->lastReply) {
             return true;
+        }
 
         return ! $lastReply->wasJustPublished();
     }

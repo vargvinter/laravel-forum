@@ -75,4 +75,5 @@ return [
         'key' => env('ALGOLIA_KEY', ''),
         'secret' => env('ALGOLIA_SECRET', ''),
     ],
+
 ];

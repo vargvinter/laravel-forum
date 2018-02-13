@@ -1,19 +1,19 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class ChannelTest extends TestCase
 {
-	use DatabaseMigrations;
-	
+    use RefreshDatabase;
+    
     /** @test */
-    public function it_consists_of_threads()
+    public function a_channel_consists_of_threads()
     {
-        $channel = create(\App\Channel::class);
-        $thread = create(\App\Thread::class, ['channel_id' => $channel->id]);
+        $channel = create('App\Channel');
+        $thread = create('App\Thread', ['channel_id' => $channel->id]);
 
         $this->assertTrue($channel->threads->contains($thread));
     }

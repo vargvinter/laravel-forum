@@ -8,7 +8,7 @@
 
     <div class="panel-body">
         <div class="form-group">
-            <wysiwyg name="body" v-model="form.body"></wysiwyg>
+            <wysiwyg v-model="form.body"></wysiwyg>
         </div>
     </div>
 

@@ -2,16 +2,25 @@
 
 namespace App;
 
-use Redis;
+use Illuminate\Support\Facades\Redis;
 
 class Trending
 {
+    /**
+     * Fetch all trending threads.
+     *
+     * @return array
+     */
     public function get()
     {
-        // We want top 5 trending threads so a range is set from 0 to 4.
         return array_map('json_decode', Redis::zrevrange($this->cacheKey(), 0, 4));
     }
 
+    /**
+     * Push a new thread to the trending list.
+     *
+     * @param Thread $thread
+     */
     public function push($thread)
     {
         Redis::zincrby($this->cacheKey(), 1, json_encode([
@@ -20,12 +29,21 @@ class Trending
         ]));
     }
 
+    /**
+     * Get the cache key name.
+     *
+     * @return string
+     */
     public function cacheKey()
     {
-        // Watch Homemade Fakes for another idea how to solve this thing...
-        return app()->environment('testing') ? 'testing_trending_threads' : 'trending_threads';
+        return app()->environment('testing')
+            ? 'testing_trending_threads'
+            : 'trending_threads';
     }
 
+    /**
+     * Reset all trending threads.
+     */
     public function reset()
     {
         Redis::del($this->cacheKey());

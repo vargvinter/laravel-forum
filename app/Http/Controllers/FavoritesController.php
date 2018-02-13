@@ -2,28 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Reply;
+use App\Reputation;
 
 class FavoritesController extends Controller
 {
-	public function __construct()
-	{
-		$this->middleware('auth');
-	}
-
-    public function store(Reply $reply)
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct()
     {
-    	$reply->favorite();
-
-    	return back();
+        $this->middleware('auth');
     }
 
+    /**
+     * Store a new favorite in the database.
+     *
+     * @param  Reply $reply
+     */
+    public function store(Reply $reply)
+    {
+        $reply->favorite();
+
+        Reputation::gain($reply->owner, Reputation::REPLY_FAVORITED);
+    }
+
+    /**
+     * Delete the favorite.
+     *
+     * @param Reply $reply
+     */
     public function destroy(Reply $reply)
     {
-    	$reply->unfavorite();
+        $reply->unfavorite();
 
-    	return back();
+        Reputation::lose($reply->owner, Reputation::REPLY_FAVORITED);
     }
 }

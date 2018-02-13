@@ -3,16 +3,12 @@
 namespace Tests\Feature;
 
 use App\Trending;
-use Redis;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class TrendingThreadsTest extends TestCase
 {
-    use DatabaseMigrations;
-
-    protected $trending;
+    use RefreshDatabase;
 
     protected function setUp()
     {
@@ -26,11 +22,11 @@ class TrendingThreadsTest extends TestCase
     /** @test */
     public function it_increments_a_threads_score_each_time_it_is_read()
     {
-        $this->assertCount(0, $this->trending->get());
+        $this->assertEmpty($this->trending->get());
 
-        $thread = create(\App\Thread::class);
+        $thread = create('App\Thread');
 
-        $this->get($thread->path());
+        $this->call('GET', $thread->path());
 
         $this->assertCount(1, $trending = $this->trending->get());
 

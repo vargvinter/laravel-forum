@@ -2,48 +2,70 @@
 
 namespace App;
 
-use App\Activity;
 
 trait RecordsActivity
 {
-	/* Laravel's magic... */
-	protected static function bootRecordsActivity()
-	{
-		if (auth()->guest()) return;
-		
-		foreach (static::getActivitiesToRecord() as $event) {
-			static::$event(function($model) use ($event) {
-			    $model->recordActivity($event);
-			});
-		}
+    /**
+     * Boot the trait.
+     */
+    protected static function bootRecordsActivity()
+    {
+        if (auth()->guest()) return;
 
-		static::deleting(function($model) {
-			$model->activity()->delete();
-		});
-	}
+        foreach (static::getActivitiesToRecord() as $event) {
+            static::$event(function ($model) use ($event) {
+                $model->recordActivity($event);
+            });
+        }
 
-	protected static function getActivitiesToRecord()
-	{
-		return ['created'];
-	}
+        static::deleting(function ($model) {
+            $model->activity()->delete();
+        });
+    }
 
-	protected function recordActivity($event)
-	{
-		$this->activity()->create([
-			'user_id' => auth()->id(),
-			'type' => $this->getActivityType($event)
-		]);
-	}
+    /**
+     * Fetch all model events that require activity recording.
+     *
+     * @return array
+     */
+    protected static function getActivitiesToRecord()
+    {
+        return ['created'];
+    }
 
-	protected function activity() 
-	{
-		return $this->morphMany(\App\Activity::class, 'subject');
-	}
+    /**
+     * Record new activity for the model.
+     *
+     * @param string $event
+     */
+    protected function recordActivity($event)
+    {
+        $this->activity()->create([
+            'user_id' => auth()->id(),
+            'type' => $this->getActivityType($event)
+        ]);
+    }
 
-	protected function getActivityType($event)
-	{
-		$type = strtolower((new \ReflectionClass($this))->getShortName());
+    /**
+     * Fetch the activity relationship.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function activity()
+    {
+        return $this->morphMany('App\Activity', 'subject');
+    }
 
-	    return "{$event}_{$type}";
-	}
+    /**
+     * Determine the activity type.
+     *
+     * @param  string $event
+     * @return string
+     */
+    protected function getActivityType($event)
+    {
+        $type = strtolower((new \ReflectionClass($this))->getShortName());
+
+        return "{$event}_{$type}";
+    }
 }

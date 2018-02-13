@@ -1,10 +1,11 @@
 <template>
-    <div :id="'reply-'+id" class="panel" :class="isBest ? 'panel-success' : 'panel-default'">
+    <div :id="'reply-'+id" class="panel" :class="isBest ? 'panel-success': 'panel-default'">
         <div class="panel-heading">
             <div class="level">
                 <h5 class="flex">
-                    <a :href="'/profiles/' + reply.owner.name" v-text="reply.owner.name"></a>
-                    said <span v-text="ago"></span>
+                    <a :href="'/profiles/' + reply.owner.name"
+                        v-text="reply.owner.name">
+                    </a> said <span v-text="ago"></span>
                 </h5>
 
                 <div v-if="signedIn">
@@ -21,18 +22,20 @@
                     </div>
 
                     <button class="btn btn-xs btn-primary">Update</button>
-                    <button class="btn btn-xs btn-link" @click="editing=false" type="button">Cancel</button>
+                    <button class="btn btn-xs btn-link" @click="cancel" type="button">Cancel</button>
                 </form>
             </div>
+
             <div v-else v-html="body"></div>
         </div>
 
         <div class="panel-footer level" v-if="authorize('owns', reply) || authorize('owns', reply.thread)">
             <div v-if="authorize('owns', reply)">
-                <button class="btn btn-xs mr-1" @click="editing=true">Edit</button>
+                <button class="btn btn-xs mr-1" @click="editing = true" v-if="! editing">Edit</button>
                 <button class="btn btn-xs btn-danger mr-1" @click="destroy">Delete</button>
             </div>
-            <button class="btn btn-xs btn-default ml-a" v-if="authorize('owns', reply.thread)" @click="markBestReply">Best Reply?</button>
+
+            <button class="btn btn-xs btn-default ml-a" @click="markBestReply" v-if="authorize('owns', reply.thread)">Best Reply?</button>
         </div>
     </div>
 </template>
@@ -51,7 +54,7 @@
                 editing: false,
                 id: this.reply.id,
                 body: this.reply.body,
-                isBest: this.reply.isBest
+                isBest: this.reply.isBest,
             };
         },
 
@@ -61,7 +64,7 @@
             }
         },
 
-        created() {
+        created () {
             window.events.$on('best-reply-selected', id => {
                 this.isBest = (id === this.id);
             });
@@ -69,16 +72,23 @@
 
         methods: {
             update() {
-                axios.patch('/replies/' + this.id, {
-                    body: this.body
-                })
-                .catch(error => {
-                    flash(error.response.data, 'danger');
-                });
+                axios.patch(
+                    '/replies/' + this.id, {
+                        body: this.body
+                    })
+                    .catch(error => {
+                        flash(error.response.data, 'danger');
+                    });
 
                 this.editing = false;
 
                 flash('Updated!');
+            },
+
+            cancel() {
+                this.editing = false;
+
+                this.body = this.reply.body;
             },
 
             destroy() {
@@ -93,5 +103,5 @@
                 window.events.$emit('best-reply-selected', this.id);
             }
         }
-    };
+    }
 </script>

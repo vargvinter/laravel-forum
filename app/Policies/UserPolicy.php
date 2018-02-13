@@ -9,7 +9,14 @@ class UserPolicy
 {
     use HandlesAuthorization;
 
-    public function update(User $user, User $signedInUser) // $user <- profileUser, $signedInUser <- auth()->user()
+    /**
+     * Determine whether the user can update the given profile.
+     *
+     * @param  \App\User $signedInUser
+     * @param  \App\User $user
+     * @return boolean
+     */
+    public function update(User $signedInUser, User $user)
     {
         return $signedInUser->id === $user->id;
     }

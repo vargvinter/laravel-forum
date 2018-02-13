@@ -1,3 +1,4 @@
+
 window._ = require('lodash');
 
 import InstantSearch from 'vue-instantsearch';
@@ -24,17 +25,14 @@ Vue.use(InstantSearch);
 
 let authorizations = require('./authorizations');
 
-Vue.prototype.authorize = function(...params) {
-	if (! window.App.signedIn) return false;
+Vue.prototype.authorize = function (...params) {
+    if (! window.App.signedIn) return false;
 
-	// if the first parameter is string (function name from authorizaions.js file),
-	// trigger that function.
-	if (typeof params[0] === 'string') {
-		return authorizations[params[0]](params[1]);
-	}
+    if (typeof params[0] === 'string') {
+        return authorizations[params[0]](params[1]);
+    }
 
-	// otherwise return callback.
-	return params[0](window.App.user);
+    return params[0](window.App.user);
 };
 
 Vue.prototype.signedIn = window.App.signedIn;
@@ -54,6 +52,6 @@ window.axios.defaults.headers.common = {
 
 window.events = new Vue();
 
-window.flash = function(message, level = 'success') {
-	window.events.$emit('flash', { message, level });
-}
+window.flash = function (message, level = 'success') {
+    window.events.$emit('flash', { message, level });
+};
